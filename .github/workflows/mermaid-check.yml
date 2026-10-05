@@ -1,0 +1,40 @@
+name: Mermaid check
+
+on:
+  pull_request:
+    paths:
+      - '**/*.mmd'
+      - '**/*.md'
+      - '.github/workflows/mermaid-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Install Mermaid CLI
+        run: npm install -g @mermaid-js/mermaid-cli@12.0.0
+      # Ubuntu 24.04 以降は AppArmor が Chrome のサンドボックスを止めるので、このランナーの中だけ制限を外す（6 章）
+      - name: Allow Chrome sandbox
+        run: echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+      - name: Check Mermaid diagrams
+        run: |
+          status=0
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              *.md) out="$RUNNER_TEMP/check.md" ;;
+              *)    out="$RUNNER_TEMP/check.svg" ;;
+            esac
+            if ! mmdc -i "$file" -o "$out"; then
+              echo "::error file=$file::Could not render the Mermaid diagram in $file"
+              status=1
+            fi
+          done < <(git ls-files -z '*.mmd' '*.md')
+          exit "$status"
