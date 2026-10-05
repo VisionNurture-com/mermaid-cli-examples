@@ -2,3 +2,4 @@ flowchart TD
     A[Open login page] --> B{Valid password?}
     B -->|Yes| C[Show dashboard]
     B -->|No| D[Show error]
+    C --> E[Log out]
