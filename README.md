@@ -10,3 +10,10 @@ flowchart LR
     C -->|Yes| D[Merge]
     C -->|No| E[Fix]
 ```
+
+## Data flow
+
+```mermaid
+flowchart LR
+    A[Browser --> B[API]
+```
